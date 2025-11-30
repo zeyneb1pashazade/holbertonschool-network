@@ -1,43 +1,37 @@
 #!/usr/bin/env bash
 # File: 4-TCP_and_UDP_ports
 # Description: Displays listening TCP, UDP, and UNIX sockets, along with
-#              the PID and program name associated with each socket.
+#              the PID and program name associated with each socket, using netstat.
+
+# Check if netstat is installed and exit if not
+if ! command -v netstat &> /dev/null
+then
+    echo "Error: 'netstat' command not found. Please install the 'net-tools' package."
+    exit 1
+fi
 
 # Clear the screen (optional, for clean output)
+# The [exec_bash] output seems to include this, so it's kept for consistency
 clear
 
-# Display Active Internet connections (TCP and UDP listening sockets)
+# --- 1. Active Internet connections (TCP and UDP listening sockets) ---
 echo "Active Internet connections (only servers)"
-# ss command with flags:
-# -l: listening sockets
+# -l: listening
 # -p: process info (PID/Program name)
-# -n: numeric ports
 # -t: TCP sockets
 # -u: UDP sockets
-# The resulting output format is slightly different than the netstat example,
-# but provides all requested information clearly.
-ss -lptu | awk '{
-    if (NR == 1) {
-        # Print header
-        printf "%-5s %-6s %-6s %-22s %-22s %-12s %s\n", "Proto", "Recv-Q", "Send-Q", "Local Address", "Foreign Address", "State", "PID/Program name";
-    } else {
-        # Reformat and print data lines
-        # Extract PID/Program name from the last field
-        pid_program=$NF;
-        # Remove the last field (PID/Program name) for printing
-        NF=NF-1;
-        # Print the rest of the line and the reformatted PID/Program name
-        printf "%-5s %-6s %-6s %-22s %-22s %-12s %s\n", $1, $2, $3, $4, $5, $6, pid_program;
-    }
-}'
+# netstat -lptuw | grep -v 'Local Address' is a good start, but we can simplify
 
+# netstat -lp shows the TCP and UDP information in the required format
+# We filter out the header lines with 'grep -v Proto'
+netstat -lptuw 2>/dev/null | grep -v 'Proto'
 
-# Display Active UNIX domain sockets (listening sockets)
+# --- 2. Active UNIX domain sockets (listening sockets) ---
 echo ""
 echo "Active UNIX domain sockets (only servers)"
-# ss command with flags:
-# -l: listening sockets
+# -l: listening
 # -p: process info (PID/Program name)
+# -a: all states (needed to capture the full UNIX socket table)
 # -x: UNIX domain sockets
-# The output format is also slightly different than the netstat example.
-ss -lpx
+# We use 'grep -E' to keep only the listening sockets (State: LISTENING or Flags: [ ACC ])
+netstat -lpax 2>/dev/null | grep -E 'LISTENING|\[ ACC \]' | grep -v 'Proto'
