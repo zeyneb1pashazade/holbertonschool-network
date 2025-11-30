@@ -1,4 +1,43 @@
-#!/bin/bash
-# Display all listening TCP and UDP ports with PID/Program name
+#!/usr/bin/env bash
+# File: 4-TCP_and_UDP_ports
+# Description: Displays listening TCP, UDP, and UNIX sockets, along with
+#              the PID and program name associated with each socket.
 
-sudo netstat -tulpn
+# Clear the screen (optional, for clean output)
+clear
+
+# Display Active Internet connections (TCP and UDP listening sockets)
+echo "Active Internet connections (only servers)"
+# ss command with flags:
+# -l: listening sockets
+# -p: process info (PID/Program name)
+# -n: numeric ports
+# -t: TCP sockets
+# -u: UDP sockets
+# The resulting output format is slightly different than the netstat example,
+# but provides all requested information clearly.
+ss -lptu | awk '{
+    if (NR == 1) {
+        # Print header
+        printf "%-5s %-6s %-6s %-22s %-22s %-12s %s\n", "Proto", "Recv-Q", "Send-Q", "Local Address", "Foreign Address", "State", "PID/Program name";
+    } else {
+        # Reformat and print data lines
+        # Extract PID/Program name from the last field
+        pid_program=$NF;
+        # Remove the last field (PID/Program name) for printing
+        NF=NF-1;
+        # Print the rest of the line and the reformatted PID/Program name
+        printf "%-5s %-6s %-6s %-22s %-22s %-12s %s\n", $1, $2, $3, $4, $5, $6, pid_program;
+    }
+}'
+
+
+# Display Active UNIX domain sockets (listening sockets)
+echo ""
+echo "Active UNIX domain sockets (only servers)"
+# ss command with flags:
+# -l: listening sockets
+# -p: process info (PID/Program name)
+# -x: UNIX domain sockets
+# The output format is also slightly different than the netstat example.
+ss -lpx
