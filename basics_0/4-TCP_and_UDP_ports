@@ -1,0 +1,4 @@
+#!/bin/bash
+# Display all listening TCP and UDP ports with PID/Program name
+
+sudo netstat -tulpn
