@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+# 2-port_listening_on_localhost
+# Listens on port 98 on localhost and prints any received text
+
+echo "Starting my script."
+# Listen on 127.0.0.2:98 and output received text
+nc -l 127.0.0.2 98
